@@ -1,0 +1,24 @@
+name: pdf_library_app
+description: Application de lecture de livres PDF, bibliothèque personnalisable par genres/catégories, lecture audio (TTS) en ligne ou hors-ligne.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  syncfusion_flutter_pdfviewer: ^24.2.7
+  syncfusion_flutter_pdf: ^24.2.7
+  flutter_tts: ^3.8.5
+  path_provider: ^2.1.2
+  flutter_secure_storage: ^9.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

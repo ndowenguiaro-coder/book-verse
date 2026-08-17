@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookVerse — Ma Bibliothèque</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">📖 Ma Bibliothèque</span>
+    <div style="display:flex; gap:8px;">
+      <a href="admin.html" class="btn-icon" title="Ajouter un livre">➕</a>
+      <button class="btn-icon" id="account-btn" title="Compte">👤</button>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" id="search-input" placeholder="Rechercher par titre ou auteur..." />
+    </div>
+
+    <div class="filter-block">
+      <div class="filter-title">Genres</div>
+      <div class="chip-row" id="genre-row"></div>
+    </div>
+
+    <div class="filter-block">
+      <div class="filter-title">Catégories</div>
+      <div class="chip-row" id="category-row"></div>
+    </div>
+
+    <div class="filter-block">
+      <div class="chip-row" id="smart-section-row">
+        <button class="chip" data-section="Nouveautés">Nouveautés</button>
+        <button class="chip" data-section="Les plus lus">Les plus lus</button>
+        <button class="chip" data-section="Téléchargés">Téléchargés</button>
+        <button class="chip" data-section="Favoris">Favoris</button>
+      </div>
+    </div>
+
+    <div id="results-area"></div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/offline.js"></script>
+  <script src="js/library.js"></script>
+</body>
+</html>

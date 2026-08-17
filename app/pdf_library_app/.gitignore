@@ -1,0 +1,18 @@
+# Secrets
+backend/.env
+
+# Base de données locale
+backend/pdf_library.db
+
+# Fichiers uploadés par les utilisateurs
+backend/uploads/
+
+# Python
+__pycache__/
+*.pyc
+
+# Flutter
+flutter_app/.dart_tool/
+flutter_app/build/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies

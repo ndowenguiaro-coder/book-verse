@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookVerse — Administration</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .admin-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .admin-section h2 { margin: 0 0 16px; font-size: 18px; }
+    .admin-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .admin-row .field { flex: 1; min-width: 180px; margin-bottom: 0; }
+    .field select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; font-family: var(--font-body); }
+    .status-msg { font-size: 14px; margin-top: 10px; }
+    .status-msg.success { color: #15803D; }
+    .status-msg.error { color: var(--danger); }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .tag-pill { background: var(--bg-light); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="library.html" class="btn-icon" title="Retour à la bibliothèque">←</a>
+    <span class="brand" style="font-size:18px;">⚙️ Administration</span>
+    <span></span>
+  </header>
+
+  <main class="page-body" style="max-width: 700px;">
+    <p id="auth-warning" class="form-error" hidden>
+      Vous devez être connecté pour ajouter du contenu.
+      <a href="login.html">Se connecter</a>
+    </p>
+
+    <section class="admin-section">
+      <h2>Nouveau genre</h2>
+      <form id="genre-form" class="admin-row">
+        <div class="field">
+          <label for="genre-name">Nom du genre</label>
+          <input type="text" id="genre-name" placeholder="Ex. Science-fiction" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+      </form>
+      <div class="status-msg" id="genre-status"></div>
+      <div class="tag-list" id="genre-list"></div>
+    </section>
+
+    <section class="admin-section">
+      <h2>Nouvelle catégorie</h2>
+      <form id="category-form" class="admin-row">
+        <div class="field">
+          <label for="category-name">Nom de la catégorie</label>
+          <input type="text" id="category-name" placeholder="Ex. À lire plus tard" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+      </form>
+      <div class="status-msg" id="category-status"></div>
+      <div class="tag-list" id="category-list"></div>
+    </section>
+
+    <section class="admin-section">
+      <h2>Ajouter un livre</h2>
+      <form id="book-form">
+        <div class="field">
+          <label for="book-title">Titre</label>
+          <input type="text" id="book-title" required />
+        </div>
+        <div class="field">
+          <label for="book-author">Auteur</label>
+          <input type="text" id="book-author" required />
+        </div>
+        <div class="field">
+          <label for="book-description">Description (optionnelle)</label>
+          <input type="text" id="book-description" />
+        </div>
+        <div class="admin-row">
+          <div class="field">
+            <label for="book-genre">Genre</label>
+            <select id="book-genre" required></select>
+          </div>
+          <div class="field">
+            <label for="book-category">Catégorie</label>
+            <select id="book-category" required></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="book-pdf">Fichier PDF</label>
+          <input type="file" id="book-pdf" accept="application/pdf" required />
+        </div>
+        <div class="field">
+          <label for="book-cover">Couverture (image, optionnelle)</label>
+          <input type="file" id="book-cover" accept="image/*" />
+        </div>
+        <button type="submit" class="btn btn-primary" id="book-submit-btn" style="width:100%; margin-top:8px;">
+          Publier le livre
+        </button>
+      </form>
+      <div class="status-msg" id="book-status"></div>
+    </section>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

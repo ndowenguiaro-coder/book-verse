@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookVerse — Lecture</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a href="library.html" class="btn-icon" title="Retour à la bibliothèque">←</a>
+    <span class="brand" id="book-title" style="font-size:16px; flex:1; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+      Chargement...
+    </span>
+    <button class="btn-icon" id="immersive-btn" title="Mode immersif">⛶</button>
+    <button class="btn-icon" id="download-btn" title="Télécharger pour lecture hors-ligne">⬇️</button>
+  </header>
+
+  <main class="reader-body" id="reader-body">
+    <div class="loading-state" id="reader-status" style="color:white;">
+      <div class="spinner"></div>
+      Chargement et préparation du PDF...
+    </div>
+    <canvas id="pdf-canvas" hidden></canvas>
+  </main>
+
+  <div class="reader-controls" id="reader-controls" hidden>
+    <button class="btn-icon" id="tts-btn" title="Écouter cette page">🔊</button>
+    <div class="reader-status">
+      <div class="label" id="tts-label">Écouter cette page</div>
+      <div class="sub" id="page-indicator">Page 1 / 1</div>
+    </div>
+    <div class="page-nav">
+      <button class="btn-icon" id="prev-btn" title="Page précédente">◀</button>
+      <button class="btn-icon" id="next-btn" title="Page suivante">▶</button>
+    </div>
+    <select class="speed-select" id="speed-select" title="Vitesse de lecture">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x (Normal)</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2">2x</option>
+    </select>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/offline.js"></script>
+  <script src="js/reader.js"></script>
+</body>
+</html>
