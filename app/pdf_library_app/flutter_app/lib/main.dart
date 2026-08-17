@@ -7,7 +7,10 @@ import 'core/animations/animation_constants.dart';
 // Émulateur Android : 10.0.2.2 pointe vers localhost de la machine hôte.
 // Simulateur iOS / Flutter web : utiliser http://127.0.0.1:8000
 // Appareil physique : IP locale de votre machine, ex. http://192.168.1.20:8000
-const String kBaseUrl = String.fromEnvironment('BOOKVERSE_API_URL', defaultValue: 'http://10.0.2.2:8000');
+const String kBaseUrl = String.fromEnvironment(
+  'BOOKVERSE_API_URL',
+  defaultValue: 'http://10.0.2.2:8000',
+);
 
 void main() {
   runApp(const PdfLibraryApp());

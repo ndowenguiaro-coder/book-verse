@@ -16,7 +16,6 @@ from database import get_db
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 if not SECRET_KEY:
-    # Development fallback only. Production must define JWT_SECRET.
     SECRET_KEY = "bookverse-development-secret-change-me"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))

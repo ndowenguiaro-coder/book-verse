@@ -29,6 +29,11 @@ async function ensureSession() {
 
 function isLoggedIn() { return Boolean(getToken()); }
 
+async function requireValidSession() {
+  if (!getToken()) return false;
+  return await ensureSession();
+}
+
 function authHeaders() {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -52,6 +57,7 @@ async function apiRegister(email, password, displayName) {
     body: JSON.stringify({ email, password, display_name: displayName || null }),
   });
   if (!response.ok) throw new Error(await extractError(response));
+  return await response.json();
 }
 
 async function apiLogin(email, password) {

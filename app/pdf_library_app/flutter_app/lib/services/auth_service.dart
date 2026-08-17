@@ -23,10 +23,11 @@ class AuthService {
   Future<void> register({required String email, required String password, String? displayName}) async {
     final response = await http.post(Uri.parse('$baseUrl/auth/register'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'email': email.trim().toLowerCase(), 'password': password, 'display_name': displayName})).timeout(const Duration(seconds: 12));
     if (response.statusCode != 201) throw Exception(_extractError(response));
-    await login(email: email, password: password);
+    await login(email: normalizedEmail, password: password);
   }
 
   Future<void> login({required String email, required String password}) async {
+    final normalizedEmail = email.trim().toLowerCase();
     final response = await http.post(Uri.parse('$baseUrl/auth/login'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'email': email.trim().toLowerCase(), 'password': password})).timeout(const Duration(seconds: 12));
     if (response.statusCode != 200) throw Exception(_extractError(response));
     final data = jsonDecode(response.body) as Map<String, dynamic>;

@@ -43,14 +43,19 @@ app = FastAPI(
     description="Bibliothèque numérique, lecture PDF, favoris, progression et audio.",
     version="2.0.0",
 )
+cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()],
+    allow_origins=cors_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.mount("/static/covers", StaticFiles(directory=COVER_DIR), name="covers")
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "bookverse-api"}
 
 MAX_PDF_BYTES = int(os.getenv("MAX_PDF_MB", "100")) * 1024 * 1024
 MAX_COVER_BYTES = int(os.getenv("MAX_COVER_MB", "10")) * 1024 * 1024

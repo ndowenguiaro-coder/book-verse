@@ -72,7 +72,7 @@ class UserCreate(BaseModel):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         value = value.strip().lower()
-        if not EMAIL_RE.match(value): raise ValueError("Adresse e-mail invalide.")
+        if not EMAIL_RE.fullmatch(value): raise ValueError("Adresse e-mail invalide.")
         return value
 class UserLogin(BaseModel):
     email: str
@@ -81,7 +81,7 @@ class UserLogin(BaseModel):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         value = value.strip().lower()
-        if not EMAIL_RE.match(value): raise ValueError("Adresse e-mail invalide.")
+        if not EMAIL_RE.fullmatch(value): raise ValueError("Adresse e-mail invalide.")
         return value
 class UserResponse(BaseModel):
     id: int

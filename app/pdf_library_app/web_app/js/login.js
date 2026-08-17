@@ -1,7 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // Déjà connecté : on saute directement à la bibliothèque.
-  if (isLoggedIn()) {
-    window.location.href = 'library.html';
+document.addEventListener('DOMContentLoaded', async () => {
+  // Never trust a stale localStorage token for navigation.
+  if (await requireValidSession()) {
+    window.location.replace('library.html');
     return;
   }
 
@@ -33,7 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   switchBtn.addEventListener('click', () => {
+    if (submitBtn.disabled) return;
     isRegisterMode = !isRegisterMode;
+    form.reset();
     applyMode();
   });
 
@@ -41,35 +43,28 @@ document.addEventListener('DOMContentLoaded', () => {
     event.preventDefault();
     errorBox.hidden = true;
 
-    const email = emailInput.value.trim();
+    const email = emailInput.value.trim().toLowerCase();
     const password = passwordInput.value;
     const confirmation = confirmInput.value;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    if (!email.includes('@')) {
-      showError('Email invalide.');
-      return;
-    }
-    if (password.length < 8) {
-      showError('Le mot de passe doit contenir au moins 8 caractères.');
-      return;
-    }
-    if (isRegisterMode && password !== confirmation) {
-      showError('Les mots de passe ne correspondent pas.');
-      return;
-    }
+    if (!emailOk) return showError('Adresse e-mail invalide.');
+    if (password.length < 8) return showError('Le mot de passe doit contenir au moins 8 caractères.');
+    if (isRegisterMode && password !== confirmation) return showError('Les mots de passe ne correspondent pas.');
 
     submitBtn.disabled = true;
-    submitBtn.textContent = '…';
+    submitBtn.textContent = isRegisterMode ? 'Création…' : 'Connexion…';
     try {
       if (isRegisterMode) {
         await apiRegister(email, password, nameInput.value.trim());
-        await apiLogin(email, password);
-      } else {
-        await apiLogin(email, password);
       }
-      window.location.href = 'library.html';
+      await apiLogin(email, password);
+      window.location.replace('library.html');
     } catch (err) {
-      showError(err.message);
+      const message = err instanceof Error ? err.message : String(err);
+      showError(message.includes('Failed to fetch')
+        ? 'Impossible de joindre le serveur. Vérifie l’URL du backend FastAPI et la configuration Vercel.'
+        : message);
       submitBtn.disabled = false;
       applyMode();
     }
