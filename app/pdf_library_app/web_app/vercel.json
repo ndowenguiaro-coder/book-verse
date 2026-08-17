@@ -1,11 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/library", "destination": "/library.html" },
-    { "source": "/reader", "destination": "/reader.html" },
-    { "source": "/admin", "destination": "/admin.html" }
-  ]
+  "trailingSlash": false
 }

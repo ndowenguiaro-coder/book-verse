@@ -15,7 +15,10 @@ import models
 from database import get_db
 
 SECRET_KEY = os.getenv("JWT_SECRET")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 if not SECRET_KEY:
+    if ENVIRONMENT in {"production", "prod"}:
+        raise RuntimeError("JWT_SECRET doit être défini en production.")
     SECRET_KEY = "bookverse-development-secret-change-me"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))

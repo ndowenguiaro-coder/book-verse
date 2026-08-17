@@ -1,14 +1,20 @@
-// Toute la communication avec le backend FastAPI passe par ce module.
-// Le jeton JWT est stocké dans localStorage (équivalent du token sécurisé
-// côté mobile) et rejoué automatiquement sur les routes protégées.
+// BookVerse Web API client.
+// config.js doit être chargé avant ce fichier.
 
 const TOKEN_KEY = 'bookverse_token';
+
+function apiUrl(path) {
+  const base = String(window.BOOKVERSE_API_URL || '').replace(/\/+$/, '');
+  const cleanPath = String(path || '').startsWith('/') ? path : `/${path}`;
+  return `${base}${cleanPath}`;
+}
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
 function setToken(token) {
+  if (!token) throw new Error('Le serveur n’a pas fourni de jeton de connexion.');
   localStorage.setItem(TOKEN_KEY, token);
 }
 
@@ -16,22 +22,8 @@ function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function ensureSession() {
-  const token = getToken();
-  if (!token) return false;
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, { headers: authHeaders() });
-    if (response.ok) return true;
-  } catch {}
-  clearToken();
-  return false;
-}
-
-function isLoggedIn() { return Boolean(getToken()); }
-
-async function requireValidSession() {
-  if (!getToken()) return false;
-  return await ensureSession();
+function isLoggedIn() {
+  return Boolean(getToken());
 }
 
 function authHeaders() {
@@ -40,35 +32,81 @@ function authHeaders() {
 }
 
 async function extractError(response) {
+  let data = null;
+  try { data = await response.json(); } catch (_) {}
+
+  if (data?.detail) {
+    if (Array.isArray(data.detail)) {
+      return data.detail.map((item) => item.msg || 'Donnée invalide.').join(' ');
+    }
+    return String(data.detail);
+  }
+
+  return `Le serveur a répondu ${response.status}${response.statusText ? ` (${response.statusText})` : ''}.`;
+}
+
+async function request(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  const token = getToken();
+  if (token && !headers.Authorization) headers.Authorization = `Bearer ${token}`;
+
+  let response;
   try {
-    const data = await response.json();
-    return data.detail || `Erreur inconnue (${response.status}).`;
-  } catch {
-    return `Erreur inconnue (${response.status}).`;
+    response = await fetch(apiUrl(path), {
+      ...options,
+      headers,
+      credentials: 'omit',
+    });
+  } catch (error) {
+    throw new Error(
+      `Impossible de joindre BookVerse API (${apiUrl(path)}). ` +
+      `Vérifie que le backend est démarré et que l'URL API est correcte.`
+    );
+  }
+
+  if (response.status === 401) {
+    clearToken();
+  }
+
+  if (!response.ok) throw new Error(await extractError(response));
+  return response;
+}
+
+async function ensureSession() {
+  if (!getToken()) return false;
+  try {
+    await request('/auth/me');
+    return true;
+  } catch (_) {
+    clearToken();
+    return false;
   }
 }
 
 // --- AUTHENTIFICATION ---
 
 async function apiRegister(email, password, displayName) {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  const response = await request('/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, display_name: displayName || null }),
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+      password,
+      display_name: displayName?.trim() || null,
+    }),
   });
-  if (!response.ok) throw new Error(await extractError(response));
-  return await response.json();
+  return response.json();
 }
 
 async function apiLogin(email, password) {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const response = await request('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
   });
-  if (!response.ok) throw new Error(await extractError(response));
   const data = await response.json();
   setToken(data.access_token);
+  return data;
 }
 
 function apiLogout() {
@@ -76,53 +114,40 @@ function apiLogout() {
 }
 
 // --- GENRES & CATÉGORIES ---
-
 async function fetchGenres() {
-  const response = await fetch(`${API_BASE_URL}/genres/`);
-  if (!response.ok) throw new Error('Impossible de charger les genres.');
+  const response = await request('/genres/');
   return response.json();
 }
 
 async function fetchCategories() {
-  const response = await fetch(`${API_BASE_URL}/categories/`);
-  if (!response.ok) throw new Error('Impossible de charger les catégories.');
+  const response = await request('/categories/');
   return response.json();
 }
 
 async function createGenre(name) {
-  const response = await fetch(`${API_BASE_URL}/genres/`, {
+  const response = await request('/genres/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error(await extractError(response));
   return response.json();
 }
 
 async function createCategory(name) {
-  const response = await fetch(`${API_BASE_URL}/categories/`, {
+  const response = await request('/categories/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error(await extractError(response));
   return response.json();
 }
 
 async function createBook(formData) {
-  // Ne jamais fixer 'Content-Type' à la main avec FormData : le navigateur
-  // doit générer lui-même la frontière multipart, sinon l'upload échoue.
-  const response = await fetch(`${API_BASE_URL}/books/`, {
-    method: 'POST',
-    headers: { ...authHeaders() },
-    body: formData,
-  });
-  if (!response.ok) throw new Error(await extractError(response));
+  const response = await request('/books/', { method: 'POST', body: formData });
   return response.json();
 }
 
 // --- LIVRES ---
-
 async function fetchBooks({ genreId, categoryId, search, sortBy } = {}) {
   const params = new URLSearchParams();
   if (genreId) params.set('genre_id', genreId);
@@ -130,81 +155,62 @@ async function fetchBooks({ genreId, categoryId, search, sortBy } = {}) {
   if (search) params.set('search', search);
   if (sortBy) params.set('sort_by', sortBy);
 
-  const response = await fetch(`${API_BASE_URL}/books/?${params.toString()}`);
-  if (!response.ok) throw new Error('Impossible de charger les livres.');
+  const response = await request(`/books/?${params.toString()}`);
   return response.json();
 }
 
 async function fetchBook(bookId) {
-  const response = await fetch(`${API_BASE_URL}/books/${bookId}`);
-  if (!response.ok) throw new Error('Livre introuvable.');
+  const response = await request(`/books/${bookId}`);
   return response.json();
 }
 
 async function registerView(bookId) {
-  try {
-    await fetch(`${API_BASE_URL}/books/${bookId}/view`, { method: 'PATCH' });
-  } catch {
-    // Non bloquant : une vue non comptabilisée n'empêche pas la lecture.
-  }
+  try { await request(`/books/${bookId}/view`, { method: 'PATCH' }); } catch (_) {}
 }
 
 function bookPdfUrl(bookId) {
-  return `${API_BASE_URL}/books/${bookId}/download`;
+  return apiUrl(`/books/${bookId}/download`);
 }
 
 function bookCoverUrl(coverFilename) {
-  return coverFilename ? `${API_BASE_URL}/static/covers/${coverFilename}` : null;
+  return coverFilename ? apiUrl(`/static/covers/${encodeURIComponent(coverFilename)}`) : null;
 }
 
-// --- FAVORIS (nécessitent une connexion) ---
-
+// --- FAVORIS ---
 async function fetchFavoriteIds() {
   if (!isLoggedIn()) return [];
-  const response = await fetch(`${API_BASE_URL}/favorites/`, { headers: authHeaders() });
-  if (!response.ok) return [];
-  const books = await response.json();
-  return books.map((b) => b.id);
+  try {
+    const response = await request('/favorites/');
+    const books = await response.json();
+    return books.map((book) => book.id);
+  } catch (_) { return []; }
 }
 
 async function addFavorite(bookId) {
-  const response = await fetch(`${API_BASE_URL}/favorites/?book_id=${bookId}`, {
-    method: 'POST',
-    headers: authHeaders(),
-  });
-  if (!response.ok) throw new Error(await extractError(response));
+  await request(`/favorites/?book_id=${encodeURIComponent(bookId)}`, { method: 'POST' });
 }
 
 async function removeFavorite(bookId) {
-  await fetch(`${API_BASE_URL}/favorites/${bookId}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  });
+  await request(`/favorites/${encodeURIComponent(bookId)}`, { method: 'DELETE' });
 }
 
-// --- PROGRESSION DE LECTURE (nécessite une connexion) ---
-
+// --- PROGRESSION ---
 async function saveReadingProgress(bookId, currentPage) {
   if (!isLoggedIn()) return;
   try {
-    await fetch(`${API_BASE_URL}/books/${bookId}/progress`, {
+    await request(`/books/${bookId}/progress`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ current_page: currentPage }),
     });
-  } catch {
-    // Échec silencieux : la progression sera resynchronisée à la prochaine ouverture.
-  }
+  } catch (_) {}
 }
 
 async function fetchReadingProgress(bookId) {
   if (!isLoggedIn()) return null;
   try {
-    const response = await fetch(`${API_BASE_URL}/books/${bookId}/progress`, { headers: authHeaders() });
-    if (!response.ok) return null;
+    const response = await request(`/books/${bookId}/progress`);
     const data = await response.json();
     return data ? data.current_page : null;
-  } catch {
-    return null;
-  }
+  } catch (_) { return null; }
 }

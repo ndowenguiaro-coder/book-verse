@@ -1,17 +1,39 @@
-// BookVerse API configuration.
-//
-// Priority:
-// 1) window.BOOKVERSE_API_URL (optional runtime override)
-// 2) local development: http://127.0.0.1:8000
-// 3) production: /api (only if Vercel is configured to proxy /api to the
-//    real FastAPI backend). If your backend has a separate public URL,
-//    set window.BOOKVERSE_API_URL before loading api.js.
+/*
+ * BookVerse - configuration API
+ *
+ * PRIORITÉ :
+ * 1) window.BOOKVERSE_API_URL (utile pour Vercel / hébergement séparé)
+ * 2) <meta name="bookverse-api-url" content="..."> dans la page
+ * 3) localStorage (utile pour tester sans reconstruire le site)
+ * 4) l'origine actuelle (utile quand FastAPI sert aussi le site)
+ */
 (function () {
-  const runtime = (window.BOOKVERSE_API_URL || '').trim().replace(/\/$/, '');
-  const host = window.location.hostname;
-  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  const explicit = typeof window.BOOKVERSE_API_URL === 'string'
+    ? window.BOOKVERSE_API_URL.trim()
+    : '';
 
-  window.BOOKVERSE_API_BASE_URL = runtime || (isLocal ? 'http://127.0.0.1:8000' : '/api');
+  const meta = document
+    .querySelector('meta[name="bookverse-api-url"]')
+    ?.getAttribute('content')
+    ?.trim() || '';
+
+  const saved = localStorage.getItem('bookverse_api_url')?.trim() || '';
+
+  const base = explicit || meta || saved || window.location.origin;
+  window.BOOKVERSE_API_URL = base.replace(/\/+$/, '');
+
+  // Permet de changer l'API depuis la console sans modifier les autres fichiers.
+  window.setBookVerseApiUrl = function (url) {
+    const normalized = String(url || '').trim().replace(/\/+$/, '');
+    if (!normalized) {
+      localStorage.removeItem('bookverse_api_url');
+      window.BOOKVERSE_API_URL = window.location.origin;
+      return window.BOOKVERSE_API_URL;
+    }
+    localStorage.setItem('bookverse_api_url', normalized);
+    window.BOOKVERSE_API_URL = normalized;
+    return normalized;
+  };
 })();
 
-const API_BASE_URL = window.BOOKVERSE_API_BASE_URL;
+const API_BASE_URL = window.BOOKVERSE_API_URL;
